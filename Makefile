@@ -1,3 +1,3 @@
 all:
 
-	gcc -o murmur get_main.c
+	gcc -o memcached memcached.c murmur.c memcached.h
