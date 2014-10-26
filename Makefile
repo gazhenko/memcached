@@ -1,3 +1,3 @@
 all:
 
-	gcc -o memcached memcached.c murmur.c memcached.h
+	gcc -o memcached memcached.c murmur.c jenkins.c memcached.h

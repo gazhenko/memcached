@@ -29,7 +29,19 @@ int main(int argc, char const *argv[])
 	end = clock();
 	cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-	printf("Finished! Result: %d\n", (uint32_t) result);
+	printf("Finished with murmur hash! Result: %d\n", (uint32_t) result);
+	printf("Took: %f seconds\n", (double) cpu_time_used);
+
+
+	// jenkins hash
+	start = clock();
+	for (i = 0; i < 1000000000; i++)
+	{
+		result = jenkins(data, length);
+	}
+	end = clock();
+	cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+	printf("Finished with jenkins hash! Result: %d\n", (uint32_t) result);
 	printf("Took: %f seconds\n", (double) cpu_time_used);
 
 	return 0;
