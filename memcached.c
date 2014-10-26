@@ -9,6 +9,8 @@
 #include "memcached.h"
 #include <time.h>
 
+#define HASH_FUNCTION "jenkins"
+
 int main(int argc, char const *argv[])
 {
 
@@ -45,4 +47,14 @@ int main(int argc, char const *argv[])
 	printf("Took: %f seconds\n", (double) cpu_time_used);
 
 	return 0;
+}
+
+void memcached_set(char *data)
+{
+	// Doesn't do anything yet :(
+}
+
+char *memcached_get(uint32_t key)
+{
+	// Doesn't do anything yet :(
 }
