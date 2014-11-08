@@ -1,8 +1,8 @@
 /******************************************************************************\
- * This is the hashmap implementation of hashmap for use in memcached		  *
- * This file does not hash, assumes that key is already hashed				  *
- * Created by: Jemmy Gazhenko Oct 27 2014									  *
- * Thanks to https://github.com/petewarden								 	  *
+ * This is the hashmap implementation of hashmap for use in memcached	      *
+ * This file does not hash, assumes that key is already hashed		      *
+ * Created by: Jemmy Gazhenko Oct 27 2014				      *
+ * Thanks to https://github.com/petewarden			 	      *
 \******************************************************************************/
 
  #include "hashmap.h"
@@ -10,7 +10,7 @@
  #include <stdlib.h>
  #include <stdint.h>
 
- #define INITIAL_SIZE (4294967296)
+ #define INITIAL_SIZE (10)
  #define MAX_CHAIN_LENGTH (8);
 
 /* We need to keep keys and values */
@@ -18,7 +18,7 @@
  {
  	uint32_t *key;
  	int in_use;
- 	any_t data;
+ 	char *data;
  } hashmap_element;
 
  /* A hashmap has some maximum size and current size,
@@ -30,57 +30,6 @@
  	hashmap_element *data;
  } hashmap_map;
 
-/*
- int main(void)
- {
- 
- 	
-  printf("--- WELCOME TO JEMMY'S HASHMAP IMPLEMENTATION ---\n");
-
-  printf("creating hashmap...\n");
-  map_t map = hashmap_new();
-  printf("finished creating hashmap!\n");
-  printf("--------------------------\n");
-
-  printf("What's in the table right now?...\n");
-  char key = '0';
-  char *res = hashmap_get(map, &key);
-  printf("Result: %s\n", res);
-  printf("--------------------------\n");
-
-  printf("Let's try adding to the table...\n");
-  key = '0';
-  char data[12] = "hello, world";
-  int res2 = hashmap_set(map, &key, data);
-  printf("Result: %d\n", res2);
-  printf("--------------------------\n");
-
-  printf("What's in the table right now?...\n");
-  key = '0';
-  char *res3 = hashmap_get(map, &key);
-  printf("Result: %s\n", res3);
-  printf("--------------------------\n");
-
-  printf("Let's try removing from the table...\n");
-  key = '0';
-  int res4 = hashmap_remove(map, &key);
-  printf("Result: %d\n", res4);
-  printf("--------------------------\n"); 
-
-  printf("What's in the table right now?...\n");
-  key = '0';
-  char *res5 = hashmap_get(map, &key);
-  printf("Result: %s\n", res5);
-  printf("--------------------------\n");
-
-  
-
- 	//fill_table(table);
- 	//show_table(table, length(table));
-
- 	return 0;
- }
- */
 
 /*
  * Return an empty hashmap, or NULL on failure.
@@ -104,6 +53,14 @@
  			hashmap_free(map);
  		return NULL;
  }
+
+/*
+ * Hashes the key so it fits in the map
+ */
+uint32_t hashmap_hash_int(hashmap_map *map, uint32_t *key)
+{
+	return (uint32_t) (*key) % map->table_size;
+}
 
 /*
  * Doubles the size of the hashmap, and rehashes all the elements
@@ -147,19 +104,18 @@
 
 int hashmap_set(map_t in, uint32_t *key, char *value)
 {
-  printf("Checkpoint 5\n");
+		
+  	printf("Data in hashmap_set: %s\n", value);
+  	printf("Key in hashmap_set: %d\n", *key);
 	uint32_t index;
 	hashmap_map *map;
 
-  printf("Checkpoint 6\n");
 	/* Cast the hashmap */
-	map = (hashmap_map *) in;
+	map = (hashmap_map *) in;	
 
-  printf("Checkpoint 7\n");
 	/* Find a place to put our value */
-	index = *key;
+	index = hashmap_hash_int(in, key);	
 
-  printf("Checkpoint 8\n");
 	while(index == MAP_FULL)
 	{
 		if (hashmap_rehash(in) == MAP_OUT_OF_MEM)
@@ -169,24 +125,20 @@ int hashmap_set(map_t in, uint32_t *key, char *value)
 		index = *key;
 	}
 
-  printf("Checkpoint 9\n");
 
 	/* Set the data */
 
-  printf("Okay, something wrong with setting data. Data: %s\n", value);
-  printf("Okay, it's not the value. What is current index? %d\n", index);
-
-	map -> data[index].data = value;
-  printf("Checkpoint 10\n");
+	//printf("Something is wrong with storing the value into the map: %s\n", value);
+  	printf("About to store at this location: %d\n", index);
+	map -> data[index].data = value;	
 	map -> data[index].key = key;
-  printf("Checkpoint 11\n");
 	map -> data[index].in_use = 1;
-  printf("Checkpoint 12\n");
 	map -> size++;
-  printf("Checkpoint 13\n");
 
-  printf("data added! %s\n", (char *)(map -> data[index].data));
-  return MAP_OK;
+	hashmap_print(map);
+	
+	printf("Current map size: %d\n", map -> size);
+  	return MAP_OK;
 }
 
 /*
@@ -201,29 +153,30 @@ int hashmap_set(map_t in, uint32_t *key, char *value)
 
    	/* Cast the hashmap */
    	map = (hashmap_map *) in;
+   	//hashmap_print(map);
 
    	/* Find data location */
-   	// curr = hashmap_hash_int(m, key); THIS SHOULD ALREADY BE HASHED
-    current = *key;
+   	current = hashmap_hash_int(in, key);
 
    	/* Linear probing, if necessary */
    	for (i = 0; i < 8; i++)
    	{
    		int in_use = map -> data[current].in_use;
+    	uint32_t *keyy = map -> data[current].key;
    		if (in_use == 1)
    		{
-   			if (strcmp(map -> data[current].key, key) == 0)
+   			if (*keyy == *key)
    			{
    				data_found = (char *)(map -> data[current].data);
-          printf("I've found a match! %s\n", data_found);
-   				return data_found;
+          		printf("I've found a match! %s\n", data_found);
+   				return data_found = (char *)(map -> data[current].data);
    			}
    		}
    		current = (current + 1) % map -> table_size;
     }
 
- 	data_found = NULL;
-  printf("Didn't find anything..\n");
+ 	data_found = "null";
+  	printf("Didn't find anything..\n");
 
  	/* Not found! */
  	return data_found;
@@ -283,4 +236,36 @@ int hashmap_set(map_t in, uint32_t *key, char *value)
   	hashmap_map *map = (hashmap_map *) in;
   	if (map != NULL) return map -> size;
   	else return 0;
+  }
+
+  /* Print off hashmap */
+  void hashmap_print(map_t in)
+  {
+  	printf("Current Hashmap\n");
+  	printf("---------------\n");
+  	hashmap_map *map = (hashmap_map *) in;
+  	if (map != NULL) 
+  	{
+  		int current;
+  		int tableSize = map -> table_size;
+  		for (current = 0; current < tableSize; current++)
+  		{
+  			if (map -> data[current].in_use)
+  			{
+  				uint32_t *keyy = map -> data[current].key;
+  				char *dataa = map -> data[current].data;
+  				// print hashmap element
+  				printf("Element %d:\n", current);
+  				printf("     > Key: %d\n", *keyy);
+  				printf("     > Data: %s\n", dataa);
+  			}
+  			else
+  			{
+  				// print empty hashmap element
+  				printf("Element %d:\n", current);
+  				printf("     > Key: NULL\n");
+  				printf("     > Data: NULL\n");
+  			}
+  		}
+  	}
   }
