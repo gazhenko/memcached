@@ -25,27 +25,26 @@ int main(int argc, char const *argv[])
         printf("finished creating hashmap!\n");
         printf("--------------------------\n");
 
+/*
         printf("testing memcached_set\n");
         char data[12] = "hello, world";
         memcached_set(data, 12);	
 	printf("--------------------------\n");
-
-/*
+*/
 	printf("testing memcached_set\n");
         char data2[58] = "Lets try another set of data. Maybe this will work better.";
         memcached_set(data2, 58);	
 	printf("--------------------------\n");
-
+/*
 	printf("testing memcached_set\n");
         char data3[106] = "This is a very long set of data. Let's see if it hashes well and we get a good placement in the hashmap!";
         memcached_set(data3, 106);	
 	printf("--------------------------\n");
 */
-
         printf("testing memcached_get\n");
-        uint32_t key1 = jenkins(data, 12);
-        //char *dataRes1 = memcached_get(&key1);
-        printf("result 1: %s\n", memcached_get(&key1));
+        uint32_t key1 = jenkins(data2, 58);
+        //printf("result 1: %s\n", memcached_get(&key1));
+        printf("adfasf %s\n", memcached_get(&key1));
         printf("--------------------------\n");
 
         return 0;
@@ -88,6 +87,6 @@ char *memcached_get(uint32_t *key)
 	*/
 
         char *data = hashmap_get(map, key);
-        if (data == "null") return data;
+        if (data != "null") return data;
         else return data = "KEY_NOT_FOUND";
 }

@@ -168,15 +168,15 @@ int hashmap_set(map_t in, uint32_t *key, char *value)
    			if (*keyy == *key)
    			{
    				data_found = (char *)(map -> data[current].data);
-          		printf("I've found a match! %s\n", data_found);
-   				return data_found = (char *)(map -> data[current].data);
+          printf("I've found a match! %s\n", data_found);
+   				return map -> data[current].data;
    			}
    		}
    		current = (current + 1) % map -> table_size;
     }
 
  	data_found = "null";
-  	printf("Didn't find anything..\n");
+  printf("Didn't find anything..\n");
 
  	/* Not found! */
  	return data_found;
