@@ -8,6 +8,16 @@
 #include <stdint.h>
 #include <stdio.h>
 
+uint32_t jenkins(char *data, int length);
+
+int main(int argc, char const *argv[])
+{
+    char data[2];
+    data[0] = 0x12;
+    data[1] = 0x12;
+    jenkins(data, 2);
+    return 0;
+}
 
  uint32_t jenkins(char *data, int length)
  {
@@ -15,21 +25,20 @@
         uint32_t i;
         for (i = 0; i < length; i++)
         {
-		//printf("hash at [%d]: %d\n", i, hash);
+                printf("In the loop\n");
                 hash = hash + data[i];
-		//printf("	> %d\n", hash);
+                printf("%u\n", hash);
                 hash = hash + (hash << 10);
-		//printf("	> %d\n", hash);
+                printf("%u\n", hash);
                 hash = hash ^ (hash >> 6);
-		//printf("	> %d\n", hash);
+                printf("%u\n", hash);
         }
-		//printf("hash after adding everything: %d\n", hash);
         hash = hash + (hash << 3);
-        //printf("    > %d\n", hash);
+        printf("%u\n", hash);
         hash = hash ^ (hash >> 11);
-        //printf("    > %d\n", hash);
+        printf("%u\n", hash);
         hash = hash + (hash << 15);
-	//printf("Final Hash: %d\n", hash);
+        printf("%u\n", hash);
         return hash;
 
  }

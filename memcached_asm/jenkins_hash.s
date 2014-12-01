@@ -1,58 +1,66 @@
-/******************************************************************************\
- * This file implements the jenkins one-at-a-time hash function for use in    *
- * memcached's get and set functions.                                         *
- * By: Jemmy Gazhenko November 15, 2014                                       *
-\******************************************************************************/
-
-/*         Variables          *\
- * -------------------------- *
-   %r0 : data to be hashed
-   %r1 : length of data
-   %r2 : hash
-\******************************/
+/* Constants */
+.def BIT_MASK_32 0x00000000ffffffff
 
 .align 4096
 .perm x
 .entry
 .global
-entry:		ldi %r0, vector_a; 	/* Argument 0 */
-			ldi %r1, length;	/* Argument 1 */
 
-			/* create a hash variable, set to 0 */
+entry:		
+			ldi %r0, vector_a;
+			ldi %r1, length;
+			ld %r11, %r1, #0;
+
 			andi %r2, %r2, #0; 
-			/* set up loop */
-loop:		ld %r10, %r0, #0;
-			addi %r0, %r0, __WORD; /* increment vector */
-			/* hash = hash + data[i] */
-			add %r2, %r2, %r10;
-			/* hash = hash + (hash << 10) */
-			shli %r2, %r2, #10;
-			/* hash = hash ^ (hash >> 6) */
-			ld %r3, %r2, #0;
-			shri %r2, %r2, #6;
-			xor %r2, %r2, %r3;
 
-			/* hash = hash + (hash << 3) */
-			ld %r3, %r2, #0;
+loop:
+				subi %r11, %r11, #1;	/* length--			*/		
+				ld %r10, %r0, #0;		/* hash = 0;		*/
+				addi %r0, %r0, __WORD;	/* data++			*/
+
+				add %r2, %r2, %r10;	
+				andi %r2, %r2, BIT_MASK_32;
+
+				ori %r3, %r2, #0;
+				shli %r2, %r2, #10;
+				add %r2, %r2, %r3;
+				andi %r2, %r2, BIT_MASK_32;
+
+				ori %r3, %r2, #0;
+				shri %r2, %r2, #6;
+				xor %r2, %r2, %r3;
+				andi %r2, %r2, BIT_MASK_32;
+
+				rtop @p0, %r11;
+				@p0 ? jmpi loop;
+
+			ori %r3, %r2, #0;
 			shli %r2, %r2, #3;
 			add %r2, %r2, %r3;
-			/* hash = hash ^ (hash >> 11) */
-			ld %r3, %r2, #0;
+			andi %r2, %r2, BIT_MASK_32;
+
+			ori %r3, %r2, #0;
 			shri %r2, %r2, #11;
 			xor %r2, %r2, %r3;
-			/* hash = hash + (hash << 15) */
-			ld %r3, %r2, #0;
+			andi %r2, %r2, BIT_MASK_32;
+
+			ori %r3, %r2, #0;
 			shli %r2, %r2, #15;
 			add %r2, %r2, %r3;
+			andi %r2, %r2, BIT_MASK_32;
 
-			/* store hash into stack */
-			/* Print result to console */
 			ori %r7, %r2, #0;		
 			jali %r5, printdec;
+
+			ldi %r7, max_int;
+			jali %r5, puts;
 
 			trap;
 
 .align 4096
 .perm rw
-vector_a:	.word 1
+vector_a:	.word 0x12
 length: 	.word 1
+
+print_0:	.string "In the loop\n"
+max_int:	.string "4294967296 <- Max int size\n"
