@@ -19,5 +19,6 @@ extern int hashmap_remove(map_t in, uint32_t *key);
 extern void hashmap_free(map_t in);
 extern int hashmap_length(map_t in);
 extern void hashmap_print(map_t in);
+extern void hashmap_check_used_entries(map_t in);
 
 #endif

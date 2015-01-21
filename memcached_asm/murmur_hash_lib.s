@@ -18,13 +18,13 @@
 .def CONST_C1 0x512d9ecc
 .def CONST_C2 0x1b873593
 .def CONST_C3 0xc2b2ae35
+.def CONST_C4 0x85ebca6b
 .def CONST_R1 15
 .def CONST_R3 17
 .def CONST_R2 13
 .def CONST_R4 19
 .def CONST_M 5
 .def CONST_N 0x36546b64
-.def CONST_C4 0x85ebca6b
 .def SEED 0x1234
 .def BIT_MASK_32 0x00000000ffffffff
 
@@ -50,7 +50,7 @@
  murmur_infinite:
 
  		/*
- 		 * generate random number
+ 		 * generate random integer (4 byte)
  		 */
 
  		 jali %r5, rand

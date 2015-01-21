@@ -14,11 +14,11 @@ entry:
 			andi %r2, %r2, #0; 
 
 loop:
-				subi %r11, %r11, #1;	/* length--			*/		
-				ld %r10, %r0, #0;		/* hash = 0;		*/
-				addi %r0, %r0, __WORD;	/* data++			*/
+				subi %r11, %r11, #1;			/* length--			*/		
+				ld %r10, %r0, #0;				/* hash = 0;		*/
+				addi %r0, %r0, __WORD;			/* data++			*/
 
-				add %r2, %r2, %r10;	
+				add %r2, %r2, %r10;				/* 
 				andi %r2, %r2, BIT_MASK_32;
 
 				ori %r3, %r2, #0;
@@ -37,7 +37,7 @@ loop:
 			ori %r3, %r2, #0;
 			shli %r2, %r2, #3;
 			add %r2, %r2, %r3;
-			andi %r2, %r2, BIT_MASK_32;
+			
 
 			ori %r3, %r2, #0;
 			shri %r2, %r2, #11;

@@ -3,6 +3,8 @@
 ###############################################################################
 # To run a hash function, uncomment the block of code that you would like to
 # run.
+#
+# To cleanup directory, run clean.sh.
 # 
 # Author: Jemmy Gazhenko
 # Date: Dec. 1 2014
@@ -48,4 +50,21 @@
 #harptool -L -o murmur_hash_program.HOF boot.out lib.out murmur_hash_lib.out murmur_hash_program.out
 #harptool -E -c murmur_hash_program.HOF
 
+echo 'Testing Hashmap library'
+echo '-----------------------------'
 
+harptool -A -o boot.out boot.s
+echo 'Finished with boot'
+harptool -A -o lib.out lib.s
+echo 'Finished with lib'
+harptool -A -o hashmap.out hashmap.s
+echo 'Finished with hashmap'
+harptool -A -o hashmap_program.out hashmap_program.s
+echo 'Finished with hashmap_program'
+
+harptool -A -o print-stack-lib.out print-stack-lib.s
+echo 'Finished with print-stack-lib'
+
+harptool -L -o hashmap_program.HOF boot.out lib.out print-stack-lib.out hashmap_program.out hashmap.out
+#harptool -L -o hashmap_program.HOF boot.out lib.out hashmap_program.out hashmap.out
+harptool -E -c hashmap_program.HOF

@@ -11,6 +11,7 @@
 #include "hashmap.h"
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #ifdef __APPLE__
 #include <OpenCL/opencl.h>
@@ -30,34 +31,108 @@ char** create_array (char x, char y);
 
 int main(int argc, char const *argv[])
 {
+   
 
-/*        
     printf("creating hashmap...\n");
     map = hashmap_new();
     printf("finished creating hashmap!\n");
     printf("--------------------------\n");
 
-    printf("testing memcached_set\n");
+/*  printf("testing memcached_set\n");
     char data[12] = "hello, world";
     memcached_set(data, 12);	
 	printf("--------------------------\n");
 
-	printf("testing memcached_set\n");
-    char data2[58] = "Lets try another set of data. Maybe this will work better.";        memcached_set(data2, 58);	
+    char data2[57] = "Lets try another set of data. Maybe this will work better";
+    memcached_set(data2, 57);	
 	printf("--------------------------\n");
 
-	printf("testing memcached_set\n");
     char data3[106] = "This is a very long set of data. Let's see if it hashes well and we get a good placement in the hashmap!";
     memcached_set(data3, 106);	
 	printf("--------------------------\n");
 
+    char data4[13] = "hello, worldd";
+    memcached_set(data4, 13);    
+    printf("--------------------------\n");
+
+    char data5[58] = "Lets try another set of data. Maybe this will work betterr"; 
+    memcached_set(data5, 58); 
+    printf("--------------------------\n");
+
+    char data6[107] = "This is a very long set of data. Let's see if it hashes well and we get a good placement in the hashmap!!";
+    memcached_set(data6, 107);  
+    printf("--------------------------\n");
+
+    char data7[14] = "hello, worlddd";
+    memcached_set(data4, 14);    
+    printf("--------------------------\n");
+
+    char data8[59] = "Lets try another set of data. Maybe this will work betterrr"; 
+    memcached_set(data5, 59); 
+    printf("--------------------------\n");
+
+    char data9[108] = "This is a very long set of data. Let's see if it hashes well and we get a good placement in the hashmap!!!";
+    memcached_set(data6, 108);  
+    printf("--------------------------\n");
+
+    char data10[15] = "hello, worldddd";
+    memcached_set(data4, 15);    
+    printf("--------------------------\n");
+
+    char data11[60] = "Lets try another set of data. Maybe this will work betterrrr"; 
+    memcached_set(data5, 60); 
+    printf("--------------------------\n");
+
+    char data12[109] = "This is a very long set of data. Let's see if it hashes well and we get a good placement in the hashmap!!!!";
+    memcached_set(data6, 109);  
+    printf("--------------------------\n");
+
+    hashmap_print(map);
+
     printf("testing memcached_get\n");
     uint32_t key1 = jenkins(data2, 58);
     //printf("result 1: %s\n", memcached_get(&key1));
-    printf("adfasf %s\n", memcached_get(&key1));
+    printf("What I received from memcached_get: %s\n", memcached_get(&key1));
     printf("--------------------------\n");
 */
 
+    clock_t start, stop;
+
+    int i;
+    uint32_t key;
+    char value[4];
+
+    start = clock();
+
+    for (i = 0; i < 256000; i++)
+    {
+
+        value[0] = (rand() % 60) + 20;
+        value[1] = (rand() % 60) + 20;
+        value[2] = (rand() % 60) + 20;
+        value[3] = (rand() % 60) + 20;
+
+        //printf("Value: %s\n", value);
+
+        
+        memcached_set(value, 4);
+        //printf("finished %dth operation\n", i);
+
+    }
+
+    stop = clock();
+
+    double sec = (double)(stop - start) / CLOCKS_PER_SEC;
+    printf("Time taken %f seconds\n", sec);
+
+    return 0;
+}
+
+/*
+ * This is the OpenCL function for handling parallel code.
+ * (Currently does not work!)
+ */ 
+void memcached_opencl() {
 
     // Create the input vector
     int i, j;
@@ -109,7 +184,7 @@ int main(int argc, char const *argv[])
     cl_mem a_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY, 
         LIST_SIZE * sizeof(char) * ELEMENT_SIZE, NULL, &ret);
     //cl_mem debug_mem_obj = clCreateBuffer(context, CL_MEM_WRITE_ONLY, 
-    //	LIST_SIZE * sizeof(char) * ELEMENT_SIZE, NULL, &ret);
+    //  LIST_SIZE * sizeof(char) * ELEMENT_SIZE, NULL, &ret);
     cl_mem c_mem_obj = clCreateBuffer(context, CL_MEM_WRITE_ONLY, 
         LIST_SIZE * sizeof(uint32_t), NULL, &ret);
 
@@ -141,7 +216,7 @@ int main(int argc, char const *argv[])
     printf("--------------------------------------\n");
     for (i = 0; i < LIST_SIZE; i++)
     {
-    	printf("A[%d]: %s\n", i, A[i]);
+        printf("A[%d]: %s\n", i, A[i]);
     }
 
     // Read the memory buffer C on the device to the local variable C
@@ -155,9 +230,9 @@ int main(int argc, char const *argv[])
     printf("--------------------------------------\n");
     for (i = 0; i < LIST_SIZE; i++)
     {
-    	printf("hash(%s) = %d\n", A[i], C[i]);
-    	printf("hash check: %d\n", jenkins(A[i], 8));
-    //	printf("debug%s\n", DEBUG_BUFFER[i]);
+        printf("hash(%s) = %d\n", A[i], C[i]);
+        printf("hash check: %d\n", jenkins(A[i], 8));
+    //  printf("debug%s\n", DEBUG_BUFFER[i]);
     }
 
     // Clean up
@@ -173,7 +248,6 @@ int main(int argc, char const *argv[])
     //free(DEBUG_BUFFER);
     free(C);
 
-    return 0;
 }
 
 

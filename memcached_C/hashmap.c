@@ -59,7 +59,35 @@
  */
 uint32_t hashmap_hash_int(hashmap_map *map, uint32_t *key)
 {
-	return (uint32_t) (*key) % map->table_size;
+
+  //printf("hashmap_hash_int: initial\n");
+
+	/* cast the hashmap */
+	hashmap_map *m = (hashmap_map *) map;
+
+	/* If full, return immediately */
+	if (m -> size >= ((m -> table_size)/2) ) {
+		return MAP_FULL;
+	}
+
+	uint32_t curr = (uint32_t) (*key) % m->table_size;
+
+  //printf("hashmap_hash_int: curr initial = %d\n", curr);
+
+	/* Linear probing */
+	int i;
+	for (i = 0; i < 8; i++) {
+		if (m -> data[curr].in_use == 0) {
+			return curr;
+		}
+		if (m -> data[curr].in_use == 1 && 
+			(strcmp(m -> data[curr].key, key) == 0)) {
+			return curr;
+		}
+		curr = (curr + 1) % m -> table_size;
+	}
+
+	return MAP_FULL;
 }
 
 /*
@@ -67,6 +95,7 @@ uint32_t hashmap_hash_int(hashmap_map *map, uint32_t *key)
  */
  int hashmap_rehash(map_t in)
  {
+
  	int i;
  	int old_size;
  	hashmap_element *current;
@@ -75,7 +104,12 @@ uint32_t hashmap_hash_int(hashmap_map *map, uint32_t *key)
  	hashmap_map *map = (hashmap_map *) in;
  	hashmap_element *temp = (hashmap_element *)
  		calloc(2 * map -> table_size, sizeof(hashmap_element));
- 	if (!temp) return MAP_OUT_OF_MEM;
+ 	if (!temp) {
+    printf("MAP_OUT_OF_MEM\n");
+    return MAP_OUT_OF_MEM;
+  }
+
+ 	//hashmap_check_used_entries(map);
 
  	/* Update the array */
  	current = map -> data;
@@ -89,13 +123,21 @@ uint32_t hashmap_hash_int(hashmap_map *map, uint32_t *key)
  	/* Rehash the elements */
  	for (i = 0; i < old_size; i++)
  	{
- 		int status;
- 		if (current[i].in_use == 0)
- 			continue;
 
- 		status = hashmap_set(map, current[i].key, current[i].data);
- 		if (status != MAP_OK) return status;
+    	//printf("hashmap_rehash: Adding the %dth element\n", i);
+
+ 		int status;
+ 		if (current[i].in_use == 1) {
+ 			
+ 			//printf("hashmap_rehash: Found a used entry\n");
+      		status = hashmap_set(map, current[i].key, current[i].data);
+      		//hashmap_check_used_entries(map);
+     		if (status != MAP_OK) return status;
+
+    	}
  	}
+
+  	//printf("hashmap_rehash: Finished rehashing, about to free\n");
 
  	free(current);
  	return MAP_OK;
@@ -104,9 +146,9 @@ uint32_t hashmap_hash_int(hashmap_map *map, uint32_t *key)
 
 int hashmap_set(map_t in, uint32_t *key, char *value)
 {
-		
-  	printf("Data in hashmap_set: %s\n", value);
-  	printf("Key in hashmap_set: %d\n", *key);
+
+  	//printf("hashmap_set: Data = %s\n", value);
+  	//printf("hashmap_set: Key = %u\n", *key);
 	uint32_t index;
 	hashmap_map *map;
 
@@ -116,28 +158,34 @@ int hashmap_set(map_t in, uint32_t *key, char *value)
 	/* Find a place to put our value */
 	index = hashmap_hash_int(in, key);	
 
+  	//printf("hashmap_set: index after hashmap_hash_int: %d\n", index);
+
 	while(index == MAP_FULL)
 	{
 		if (hashmap_rehash(in) == MAP_OUT_OF_MEM)
 		{
 			return MAP_OUT_OF_MEM;
 		}
-		index = *key;
+    //printf("hashmap_set: Finished rehashing, moving on..\n");
+		index = hashmap_hash_int(in, key);
 	}
 
 
 	/* Set the data */
 
 	//printf("Something is wrong with storing the value into the map: %s\n", value);
-  	printf("About to store at this location: %d\n", index);
+  //printf("hashmap_set: About to store at this location: %d\n", index);
 	map -> data[index].data = value;	
 	map -> data[index].key = key;
 	map -> data[index].in_use = 1;
+
+	//hashmap_check_used_entries(map);
+
 	map -> size++;
 
-	hashmap_print(map);
+	//hashmap_print(map);
 	
-	printf("Current map size: %d\n", map -> size);
+	//printf("hashmap_set: Current map size = %d\n", map -> size);
   	return MAP_OK;
 }
 
@@ -146,37 +194,41 @@ int hashmap_set(map_t in, uint32_t *key, char *value)
  */
  char *hashmap_get(map_t in, uint32_t *key)
  {
- 	  uint32_t current;
- 	  int i;
- 	  hashmap_map *map;
- 	  char *data_found;
 
-   	/* Cast the hashmap */
-   	map = (hashmap_map *) in;
-   	//hashmap_print(map);
+	uint32_t current;
+	int i;
+	hashmap_map *map;
+	char *data_found;
 
-   	/* Find data location */
-   	current = hashmap_hash_int(in, key);
+	/* Cast the hashmap */
+	map = (hashmap_map *) in;
 
-   	/* Linear probing, if necessary */
-   	for (i = 0; i < 8; i++)
-   	{
-   		int in_use = map -> data[current].in_use;
-    	uint32_t *keyy = map -> data[current].key;
-   		if (in_use == 1)
-   		{
-   			if (*keyy == *key)
-   			{
-   				data_found = (char *)(map -> data[current].data);
-          printf("I've found a match! %s\n", data_found);
-   				return map -> data[current].data;
-   			}
-   		}
-   		current = (current + 1) % map -> table_size;
-    }
+	/* Find data location */
+	current = hashmap_hash_int(in, key);
+
+	/* Linear probing, if necessary */
+	for (i = 0; i < 8; i++)
+	{
+		printf("hashmap_get: linear probing %dth time\n", i);
+		int in_use = map -> data[current].in_use;
+		uint32_t *keyy = map -> data[current].key;
+		if (in_use == 1)
+		{
+			if (*keyy == *key)
+			{
+				data_found = (char *)(map -> data[current].data);
+    			printf("I've found a match! %s\n", data_found);
+				return map -> data[current].data;
+			}
+		}
+		current = (current + 1) % map -> table_size;
+		printf("hashmap_get: linear probing, next index to check = %d\n", current);
+	}
 
  	data_found = "null";
-  printf("Didn't find anything..\n");
+  	printf("Didn't find anything..\n");
+
+  	hashmap_print(map);
 
  	/* Not found! */
  	return data_found;
@@ -184,6 +236,7 @@ int hashmap_set(map_t in, uint32_t *key, char *value)
 
  /*
   * Remove an element with that key from the map
+  * !!! Not tested !!!
   */
   int hashmap_remove(map_t in, uint32_t *key)
   {
@@ -256,7 +309,7 @@ int hashmap_set(map_t in, uint32_t *key, char *value)
   				char *dataa = map -> data[current].data;
   				// print hashmap element
   				printf("Element %d:\n", current);
-  				printf("     > Key: %d\n", *keyy);
+  				printf("     > Key: %u\n", *keyy);
   				printf("     > Data: %s\n", dataa);
   			}
   			else
@@ -268,4 +321,33 @@ int hashmap_set(map_t in, uint32_t *key, char *value)
   			}
   		}
   	}
+  }
+
+  /* Traverse through hashmap and check which entries are in use currently */
+  void hashmap_check_used_entries(map_t in)
+  {
+
+  	printf("====================================\n");
+  	printf("Entries currently in use\n");
+  	printf("------------------------\n");
+
+  	hashmap_map *map = (hashmap_map *) in;
+
+  	if (map != NULL)
+  	{
+  		int current;
+  		int tableSize = map -> table_size;
+  		for (current = 0; current < tableSize; current++)
+  		{
+
+  			if (map -> data[current].in_use)
+  			{
+  				printf("Element %d is currently in use\n", current);
+  			}
+
+  		}
+  	}
+
+	printf("====================================\n");
+
   }
